@@ -8,11 +8,25 @@
 import SwiftUI
 import WordpressReader
 
+@available(iOS 15, *)
 struct WordpressItemView<T: WordpressItem>: View {
     let item: T
     
     init(_ item: T) {
         self.item = item
+    }
+    
+    private func attributedString(from html: String) -> AttributedString? {
+        guard let htmlData = html.data(using: .utf8),
+              let nsAttributedString = try? NSAttributedString(data: htmlData,
+                                                               options: [.documentType: NSAttributedString.DocumentType.html,
+                                                                         .characterEncoding: String.Encoding.utf8.rawValue],
+                                                               documentAttributes: nil) else {
+            return nil
+        }
+        let mutableString = NSMutableAttributedString(attributedString: nsAttributedString)
+        mutableString.addAttribute(.font, value: UIFont.systemFont(ofSize: 18), range: NSRange(location: 0, length: mutableString.length))
+        return AttributedString(mutableString)
     }
     
     var title: String {
@@ -52,10 +66,17 @@ struct WordpressItemView<T: WordpressItem>: View {
                     Text(content.excerptCleaned)
                 }
                 
-                Section(header: Text("Content")) {
-                    Text(content.contentHtml)
+              Section(header: Text("Content")) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let attributedString = attributedString(from: content.contentHtml) {
+                            Text(attributedString)
+                        } else {
+                            Text(content.contentHtml)
+                        }
+                    }
+                    .padding()
+                    .background(Color.white)
                 }
-                
             }
             if let post = item as? WordpressPost {
                 Section(header: Text("Categories")) {
@@ -75,6 +96,7 @@ struct WordpressItemView<T: WordpressItem>: View {
     }
 }
 
+@available(iOS 15, *)
 struct WordpressItemView_Previews: PreviewProvider {
     static var previews: some View {
         WordpressItemView(WordpressPost.example)
