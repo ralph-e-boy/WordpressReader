@@ -63,7 +63,15 @@ struct WordpressItemView<T: WordpressItem>: View {
                 }
                 
                 Section(header: Text("Excerpt")) {
-                    Text(content.excerptCleaned)
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let attributedString = attributedString(from: content.excerptCleaned) {
+                            Text(attributedString)
+                        } else {
+                            Text(content.excerptCleaned)
+                        }
+                    }
+                    .padding()
+                    .background(Color.white)
                 }
                 
               Section(header: Text("Content")) {
